@@ -1,5 +1,6 @@
 from tkinter import *
 import random
+from LinkedList import *
 
 def StartGame(frmLobby, window, height, width, seed):
     frmLobby.forget()
@@ -12,10 +13,16 @@ def StartGame(frmLobby, window, height, width, seed):
 
     for i in range(height):
         for j in range(width):
-            if field[i][j] == -1:
-                lblField[i][j].config(bg="blue", text=f"({i},{j})")
-            elif field[i][j] == -4:
-                lblField[i][j].config(bg="red", text=f"({i},{j})")
+            match field[i][j]:
+                case 1:
+                    lblField[i][j].config(bg="white", text=f"({i},{j})")
+                case 0:
+                    lblField[i][j].config(bg="black", text=f"({i},{j})")
+                case -1:
+                    lblField[i][j].config(bg="blue", text=f"({i},{j})")
+                case -4:
+                    lblField[i][j].config(bg="red", text=f"({i},{j})")
+
             lblField[i][j].grid(row=i, column=j)
             print(f'{field[i][j]:4}' , end=", ")
         print()
@@ -50,19 +57,19 @@ def GenerateField(height, width, seed):
     for i in range(-3,4): # not inclusive for 4
         field[middleHeight - 2][middleWidth + i] = 0
         # add block above to list for branch
-        branchPossible.append([middleHeight - 3, middleWidth + i])
+        branchPossible.append([middleHeight - 3, middleWidth + i, "up"])
         field[middleHeight + 2][middleWidth + i] = 0
-        # add block above to list for branch
-        branchPossible.append([middleHeight + 3, middleWidth + i])
+        # add block below to list for branch
+        branchPossible.append([middleHeight + 3, middleWidth + i, "down"])
 
     for i in range(-2, 3):  # not inclusive for 2
         pass
         field[middleHeight + i][middleWidth - 3] = 0
-        # add block to the right to list for branch
-        branchPossible.append([middleHeight + i, middleWidth - 4])
-        field[middleHeight + i][middleWidth + 3] = 0
         # add block to the left to list for branch
-        branchPossible.append([middleHeight + i, middleWidth + 4])
+        branchPossible.append([middleHeight + i, middleWidth - 4, "left"])
+        field[middleHeight + i][middleWidth + 3] = 0
+        # add block to the right to list for branch
+        branchPossible.append([middleHeight + i, middleWidth + 4, "right"])
 
 
     # temp for testing set block red if can be branch
@@ -79,6 +86,8 @@ def GenerateField(height, width, seed):
 
     print(f"branches: {numBranches}")
 
+    llBranchesTail = branch
+
     # loop for each branch
     for i in range(numBranches):
         # cheack if the branch can be placed
@@ -87,15 +96,42 @@ def GenerateField(height, width, seed):
 
         # remove attemptBranch from list
         branchPossible.pop(item)
+
+        # check if valid
         valid = True
         if field[attemptBranch[0] - 1][attemptBranch[1]] == 1 or field[attemptBranch[0] + 1][attemptBranch[1]] == 1:
             valid = False
         if field[attemptBranch[0]][attemptBranch[1] - 1] == 1 or field[attemptBranch[0]][attemptBranch[1] + 1] == 1:
             valid = False
 
+        # if valid place branch
         if valid:
             field[attemptBranch[0]][attemptBranch[1]] = 1
 
-    # select 2-14 branch spots
+            # extend branch one block out
+            j = 0
+            k = 0
+            match attemptBranch[2]:
+                case "up":
+                    j =  -1
+                case "down":
+                    j = 1
+                case "left":
+                    k = -1
+                case "right":
+                    k = 1
+            field[attemptBranch[0] + j][attemptBranch[1] + k] = 1
+            if i == 0:
+                llBranchesHead = branch(attemptBranch)
+                llBranchesTail = llBranchesHead
+            else:
+                llBranchesTemp = branch(attemptBranch)
+                llBranchesTail.next(llBranchesTemp)
+                llBranchesTail = llBranchesTemp
+
+
+
+    # for linked list fill area
+
 
     return field
