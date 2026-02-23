@@ -28,6 +28,7 @@ def GenerateField(height, width, seed):
     # outlide walls need to be set
     # custom maps
     # seed random to generate
+    # tictac = 1
     # wall = -1
     # gate = -2
 
@@ -76,9 +77,24 @@ def GenerateField(height, width, seed):
     random.seed(seed)
     numBranches = random.randint(2,14)
 
-    for i in range(numBranches):
-        random.randint(2, 14)
+    print(f"branches: {numBranches}")
 
+    # loop for each branch
+    for i in range(numBranches):
+        # cheack if the branch can be placed
+        item = random.randint(0, len(branchPossible) - 1)
+        attemptBranch = branchPossible[item]
+
+        # remove attemptBranch from list
+        branchPossible.pop(item)
+        valid = True
+        if field[attemptBranch[0] - 1][attemptBranch[1]] == 1 or field[attemptBranch[0] + 1][attemptBranch[1]] == 1:
+            valid = False
+        if field[attemptBranch[0]][attemptBranch[1] - 1] == 1 or field[attemptBranch[0]][attemptBranch[1] + 1] == 1:
+            valid = False
+
+        if valid:
+            field[attemptBranch[0]][attemptBranch[1]] = 1
 
     # select 2-14 branch spots
 
