@@ -75,10 +75,12 @@ def GenerateField(height, width, seed):
         branchPossible.append([middleHeight + i, middleWidth + 4, "right"])
 
 
+    """
     # temp for testing set block red if can be branch
     print(branchPossible)
     for branch in branchPossible:
         field[branch[0]][branch[1]][0] = -4
+    """
 
     # box gate
     field[middleHeight - 1][middleWidth][0] = -2
@@ -89,7 +91,6 @@ def GenerateField(height, width, seed):
 
     print(f"branches: {numBranches}")
 
-    llBranchesTail = branch
 
     # loop for each branch
     for i in range(numBranches):
@@ -134,29 +135,92 @@ def GenerateField(height, width, seed):
                 llBranchesTail.next = llBranchesTemp
                 llBranchesTail = llBranchesTemp
 
+    # test to be removed
+    llBranchesHeadTemp = llBranchesHead
+    while llBranchesHeadTemp != None:
+        location = llBranchesHeadTemp.data
+        print(f"({location[0]},{location[1]})")
+        llBranchesHeadTemp = llBranchesHeadTemp.next
 
+    print("endloop")
 
     # for linked list fill area
-    BranchHead(llBranchesHead, field, random)
+    BranchHead(llBranchesHead, llBranchesTail, field, random, height, width)
 
 
     return field
 
-def BranchHead(llBranchesHead, field, random):
+def BranchHead(llBranchesHead, llBranchesTail, field, random, height, width):
     # loop till list is empty
 
-    while llBranchesHead != None:
+    count = 0
+    while llBranchesHead != None and count < 700:
+
+        printList(llBranchesHead)
+
         location = llBranchesHead.data
+
+        # add priority to run forward
         direction = [[-1,0],[1,0],[0,1],[0,-1]]
 
         # loop for all directions
-        while direction != []:
-            directionID = random.randint(0, len(direction) - 1)
+        maxPaths = random.randint(1, 1)
+        numPaths = 0
+        loops = 0
+        print(f"checking around ({location[0]},{location[1]})")
+        while numPaths <= maxPaths and loops <= 3:
+            # select a random direction
+            print("len ", len(direction), "paths ", numPaths, "maxpaths", maxPaths)
+            if len(direction) == 1:
+                directionID = 0
+            else:
+                directionID = random.randint(0, len(direction) - 1)
+            print(directionID)
             checkDirection = direction[directionID]
+
+            # save new location to blockCheck
             blockCheck = [location[0] + checkDirection[0], location[1] + checkDirection[1]]
-            field[blockCheck[0]][blockCheck[1]][0] = -5
+
+            print("checking ", blockCheck)
+            # if a wall
+            if field[blockCheck[0]][blockCheck[1]][0] == -1:
+
+                checkAround = [[[0, -1],[-1, -1], [-1, 0]], [[-1, 0], [-1, 1], [0, 1]], [[0,1], [1,1], [1,0]], [[1,0], [1,-1], [0,-1]]]
+                for four in checkAround:
+                    valid = False
+                    for single in four:
+                        tempBlockCheck = [blockCheck[0] + single[0], blockCheck[1] + single[1]]
+                        #print(tempBlockCheck)
+                        if tempBlockCheck[0] > 0 and tempBlockCheck[1] > 0 and tempBlockCheck[0] < height - 1  and tempBlockCheck[1] < width - 1:
+                            if field[tempBlockCheck[0]][tempBlockCheck[1]][0] == -1:
+                                valid = True
+                    if not valid:
+                        break
+
+                #print(valid)
+                if valid:
+                    print("valid place")
+                    numPaths += 1
+                    field[blockCheck[0]][blockCheck[1]][0] = 1
+                    llBranchesTail.next = Branch(blockCheck)
+                    llBranchesTail = llBranchesTail.next
+
+            # remove that direction
             direction.pop(directionID)
+            loops += 1
 
         # move to next node
+        print(f"({blockCheck[0]},{blockCheck[1]})")
+        print(count)
         llBranchesHead = llBranchesHead.next
-        print("loop")
+        #print("loop")
+        count += 1
+
+
+def printList(llBranchesHead):
+    # test to be removed
+    llBranchesHeadTemp = llBranchesHead
+    while llBranchesHeadTemp != None:
+        location = llBranchesHeadTemp.data
+        print(f"({location[0]},{location[1]})")
+        llBranchesHeadTemp = llBranchesHeadTemp.next
